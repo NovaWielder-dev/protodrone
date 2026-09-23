@@ -1,3 +1,6 @@
+#ifndef PID_H
+#define PID_H
+
 class PID {
     private:
        float Kp;
@@ -15,3 +18,5 @@ class PID {
         float update(float setPoint, float measured, float dt);
         void reset();
 };
+
+#endif
