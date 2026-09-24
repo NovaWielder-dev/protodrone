@@ -6,7 +6,7 @@ Mixer::MotorCommands Mixer::compute(
     float T, 
     float Up, 
     float Ur, 
-    float Uy,
+    float Uy
 )
 {
     // Create MotorCommands struct to hold thrust values
@@ -18,19 +18,13 @@ Mixer::MotorCommands Mixer::compute(
     myCmds.r3 = T - Up - Ur - Uy;
     myCmds.r4 = T - Up + Ur + Uy;
 
-    // Clamp motor thrusts and offset all thrusts
-    // (Overshoot Clamp)
-    if (
-        myCmds.r1 > Config::Motors::MAX_PULSE_US ||
-        myCmds.r2 > Config::Motors::MAX_PULSE_US ||
-        myCmds.r3 > Config::Motors::MAX_PULSE_US ||
-        myCmds.r4 > Config::Motors::MAX_PULSE_US ||
-    ) 
+    /* === Clamp motor thrusts and offset all thrusts === */
+
+    // 1. (Overshoot Clamp)
+    float r_high = std::max({myCmds.r1, myCmds.r2, myCmds.r3, myCmds.r4});
+    // Check for overshoot
+    if (r_high > Config::Motors::MAX_PULSE_US) 
     {
-        // Find highest thrust motor
-        int m_high = calcFastest(myCmds);
-        // Find thrust of m_high
-        float r_high = myCmds.asArray()[m_high];
         // Decrease all thrusts by overshoot
         float overshoot = r_high - Config::Motors::MAX_PULSE_US;
         myCmds.r1 -= overshoot;
@@ -39,18 +33,11 @@ Mixer::MotorCommands Mixer::compute(
         myCmds.r3 -= overshoot;
         
     }
-    // (Undershoot Clamp)
-    if (
-        myCmds.r1 < Config::Motors::MIN_PULSE_US
-        myCmds.r2 < Config::Motors::MIN_PULSE_US
-        myCmds.r3 < Config::Motors::MIN_PULSE_US
-        myCmds.r4 < Config::Motors::MIN_PULSE_US
-    ) 
+    // 2. Undershoot Clamp
+    float r_low = std::min({myCmds.r1, myCmds.r2, myCmds.r3, myCmds.r4});
+    // Check for undershoot
+    if (r_low < Config::Motors::MIN_PULSE_US) 
     {
-        // Find lowest thrust motor
-        int m_low = calcSlowest(myCmds);
-        // Find thrust of m_low
-        float r_low = myCmds.asArray()[m_low];
         // Increase all thrusts by undershoot
         float undershoot = Config::Motors::MIN_PULSE_US - r_low;
         myCmds.r1 += undershoot;
@@ -59,35 +46,31 @@ Mixer::MotorCommands Mixer::compute(
         myCmds.r3 += undershoot;
     }
 
+    /* === Bandwidth Clamp === */
+    myCmds.r1 = std::clamp
+    (
+        myCmds.r1, 
+        Config::Motors::MIN_PULSE_US, 
+        Config::Motors::MAX_PULSE_US
+    );
+    myCmds.r2 = std::clamp
+    (
+        myCmds.r2, 
+        Config::Motors::MIN_PULSE_US, 
+        Config::Motors::MAX_PULSE_US
+    );
+    myCmds.r3 = std::clamp
+    (
+        myCmds.r3, 
+        Config::Motors::MIN_PULSE_US, 
+        Config::Motors::MAX_PULSE_US
+    );
+    myCmds.r4 = std::clamp
+    (
+        myCmds.r4, 
+        Config::Motors::MIN_PULSE_US, 
+        Config::Motors::MAX_PULSE_US
+    );
+
     return myCmds;
-}
-
-int Mixer::calcFastest(MotorCommands myCmds) {
-    float currHigh = Config::Motors::MIN_PULSE_US;
-    int currMotor = 1;
-    int i = 0;
-    for (float speed : myCmds.asArray()) {
-        if (speed >= currHigh) {
-            currHigh = speed;
-            currMotor = i;
-        }
-        ++i;
-    }
-
-    return currMotor;
-}
-
-int Mixer::calcSlowest(MotorCommands myCmds) {
-    float currLow = Config::Motors::MAX_PULSE_US;
-    int currMotor = 1;
-    int i = 0;
-    for (float speed : myCmds.asArray()) {
-        if (speed <= currLow) {
-            currLow = speed;
-            currMotor = i;
-        }
-        ++i;
-    }
-
-    return currMotor;
 }

@@ -19,7 +19,4 @@ namespace Mixer {
         float Ur, 
         float Uy
     );
-
-    int calcFastest(MotorCommands myCmds);
-    int calcSlowest(MotorCommands myCmds);
 }
