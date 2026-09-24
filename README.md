@@ -1,6 +1,8 @@
-# protodrone: ESP32 Custom Brushless Quadcopter
+# ProtoDrone: ESP32 Custom Brushless Quadcopter
 
-A custom, ground-up quadcopter flight controller and airframe project built on an ESP32. The goal is to develop clean, modular embedded flight software and control loops from scratch in C++, prioritizing engineering principles and control theory over off-the-shelf flight stacks.
+![C++17](https://img.shields.io/badge/C%2B%2B-17-blue.svg)
+
+A custom, ground-up quadcopter flight controller and airframe project built on an ESP32. The goal is to develop clean, modular embedded flight software and control loops from scratch in modern C++ (C++17), prioritizing engineering principles and control theory over off-the-shelf flight stacks.
 
 The target flight envelope is basic autonomous stabilization: takeoff, stable hover, manual attitude/thrust tracking, and landing.
 
