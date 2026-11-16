@@ -1,8 +1,9 @@
 #pragma once
+#include "Mixer.h"
 
-class Motors {
-    public:
-        void init();
-        void arm();
-        void write();
-};
+namespace Motors {
+    void init();
+    void arm();
+    void stop();
+    void write(const Mixer::MotorCommands& cmds);
+}
