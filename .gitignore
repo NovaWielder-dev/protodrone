@@ -8,6 +8,7 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch/
+.vscode/extensions.json
 
 # Compiled binary output files
 *.elf
@@ -20,3 +21,4 @@ Thumbs.db
 
 # AI
 GEMINI.md
+context/
