@@ -17,3 +17,6 @@
 # OS-specific files
 .DS_Store
 Thumbs.db
+
+# AI
+GEMINI.md
