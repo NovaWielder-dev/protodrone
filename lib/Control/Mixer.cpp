@@ -13,61 +13,61 @@ Mixer::MotorCommands Mixer::compute(
     Mixer::MotorCommands myCmds;
 
     // Calculate resultant motor thrusts (mix)
-    myCmds.r1 = T + Up + Ur - Uy;
-    myCmds.r2 = T + Up - Ur + Uy;
-    myCmds.r3 = T - Up - Ur - Uy;
-    myCmds.r4 = T - Up + Ur + Uy;
+    myCmds.fl = T + Up + Ur - Uy;
+    myCmds.fr = T + Up - Ur + Uy;
+    myCmds.rr = T - Up - Ur - Uy;
+    myCmds.rl = T - Up + Ur + Uy;
 
     /* === Clamp motor thrusts and offset all thrusts === */
 
     // 1. (Overshoot Clamp)
-    float r_high = std::max({myCmds.r1, myCmds.r2, myCmds.r3, myCmds.r4});
+    float r_high = std::max({myCmds.fl, myCmds.fr, myCmds.rr, myCmds.rl});
     // Check for overshoot
     if (r_high > Config::Motors::MAX_PULSE_US) 
     {
         // Decrease all thrusts by overshoot
         float overshoot = r_high - Config::Motors::MAX_PULSE_US;
-        myCmds.r1 -= overshoot;
-        myCmds.r2 -= overshoot;
-        myCmds.r4 -= overshoot;
-        myCmds.r3 -= overshoot;
+        myCmds.fl -= overshoot;
+        myCmds.fr -= overshoot;
+        myCmds.rr -= overshoot;
+        myCmds.rl -= overshoot;
         
     }
     // 2. Undershoot Clamp
-    float r_low = std::min({myCmds.r1, myCmds.r2, myCmds.r3, myCmds.r4});
+    float r_low = std::min({myCmds.fl, myCmds.fr, myCmds.rr, myCmds.rl});
     // Check for undershoot
     if (r_low < Config::Motors::MIN_PULSE_US) 
     {
         // Increase all thrusts by undershoot
         float undershoot = Config::Motors::MIN_PULSE_US - r_low;
-        myCmds.r1 += undershoot;
-        myCmds.r2 += undershoot;
-        myCmds.r4 += undershoot;
-        myCmds.r3 += undershoot;
+        myCmds.fl += undershoot;
+        myCmds.fr += undershoot;
+        myCmds.rr += undershoot;
+        myCmds.rl += undershoot;
     }
 
     /* === Bandwidth Clamp === */
-    myCmds.r1 = std::clamp
+    myCmds.fl = std::clamp
     (
-        myCmds.r1, 
+        myCmds.fl, 
         Config::Motors::MIN_PULSE_US, 
         Config::Motors::MAX_PULSE_US
     );
-    myCmds.r2 = std::clamp
+    myCmds.fr = std::clamp
     (
-        myCmds.r2, 
+        myCmds.fr, 
         Config::Motors::MIN_PULSE_US, 
         Config::Motors::MAX_PULSE_US
     );
-    myCmds.r3 = std::clamp
+    myCmds.rr = std::clamp
     (
-        myCmds.r3, 
+        myCmds.rr, 
         Config::Motors::MIN_PULSE_US, 
         Config::Motors::MAX_PULSE_US
     );
-    myCmds.r4 = std::clamp
+    myCmds.rl = std::clamp
     (
-        myCmds.r4, 
+        myCmds.rl,
         Config::Motors::MIN_PULSE_US, 
         Config::Motors::MAX_PULSE_US
     );

@@ -5,11 +5,11 @@ namespace Mixer {
 
     struct MotorCommands {
         // Resultant motor thrusts
-        float r1, r2, r3, r4;
+        float fl, fr, rr, rl;
 
         // Helper: Iterable view
         std::array<float, 4> asArray() const {
-            return {r1, r2, r3, r4};
+            return {fl, fr, rr, rl};
         }
     };
 
