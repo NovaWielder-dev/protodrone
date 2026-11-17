@@ -12,3 +12,8 @@ namespace Config::Motors {
     constexpr int PIN_REAR_RIGHT = 32; // esc3
     constexpr int PIN_REAR_LEFT = 33; // esc4
 }
+
+namespace Config::IMU {
+    constexpr int GYRO_SCL = 22;
+    constexpr int GYRO_SDA = 21;
+}
