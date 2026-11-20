@@ -9,6 +9,10 @@ ESP_IP = "192.168.4.1"
 ESP_PORT = 4210
 LOOP_HZ = 50
 DT = 1.0 / LOOP_HZ
+THROTTLE_STEP = 0.004 # Between 0.0 and 1.0
+DETHROTTLE_STEP = 0.004 # Between 0.0 and 1.0
+MAX_ANGLE_DEG = 20.0
+MAX_YAW_RATE_DPS = 60.0
 
 # ========== COMMAND STATE ========== #
 # Mirrors Receiver::ControlTargets
@@ -24,8 +28,9 @@ class ControlTargets:
 
     def clamp_all(self) -> None:
         self.throttle = max(0.0, min(1.0, self.throttle))
-        
-
+        self.pitch = max(-MAX_ANGLE_DEG, min(MAX_ANGLE_DEG, self.pitch))
+        self.roll = max(-MAX_ANGLE_DEG, min(MAX_ANGLE_DEG, self.roll))
+        self.yaw_rate = max(-MAX_YAW_RATE_DPS, min(MAX_YAW_RATE_DPS, self.yaw_rate))
 
 # ========== WIRE PROTOCOL (CODEC) ========== #
 
@@ -78,22 +83,57 @@ def run_loop() -> None:
         try:
             while True:
                 # 1. Read pressed_keys -> update targets
-                # 2. pkt = pack_command(targets)
+                curr_keys = pressed_keys.copy() # Avoids key changes mid loop
+                # 1.1 Reset pitch, roll and yaw for self-centering
+                targets.pitch = 0.0
+                targets.roll = 0.0
+                targets.yaw_rate = 0.0
 
+                # 1.2 Look for specific WASD etc. commands
+                if "space" in curr_keys:
+                    targets.throttle += THROTTLE_STEP
+                if curr_keys & {"shift", "shift_l", "shift_r"}: # Computes intersection
+                    targets.throttle -= DETHROTTLE_STEP
+            
+                if "w" in curr_keys:
+                    targets.pitch -= MAX_ANGLE_DEG
+                if "s" in curr_keys:
+                    targets.pitch += MAX_ANGLE_DEG
+                
+                if "d" in curr_keys:
+                    targets.roll += MAX_ANGLE_DEG
+                if "a" in curr_keys:
+                    targets.roll -= MAX_ANGLE_DEG
+
+                if "r" in curr_keys and targets.throttle == 0.0:
+                    targets.armed = True
+                if "r" in curr_keys and targets.throttle != 0.0:
+                    print("[ERROR] Cannot arm, throttle not at 0.0")
+                if "esc" in curr_keys or "*" in curr_keys:
+                    targets.throttle = 0.0
+                    targets.armed = False
+
+                # 2. Clamp and pack command
+                targets.clamp_all()
                 packet = pack_command(targets)
+
+                # 3. Send commands using socket
                 try:
                     sock.sendto(packet, (ESP_IP, ESP_PORT))
                 except OSError as err:
                     print(f"Send error: {err}")
 
-                # Print keypress + packet contents to console
-                print(packet.hex(" "), "---> ", pressed_keys.copy())
+                # [testing] Print keypress + packet contents to console
+                print(packet.hex(" "), "---> ", curr_keys)
                 
                 # Wait until next 20 ms tick without timing drift
                 next_tick += DT
                 sleep_time = next_tick - time.monotonic()
-                if sleep_time > 0:
+                if sleep_time > 0: # 
                     time.sleep(sleep_time)
+                elif sleep_time < -DT: # 
+                    next_tick = time.monotonic()
+
         except KeyboardInterrupt:
             print("\nStopping")
         finally:
