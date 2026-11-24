@@ -7,12 +7,16 @@ import time
 # ========== CONFIG ========== #
 ESP_IP = "192.168.4.1"
 ESP_PORT = 4210
+
 LOOP_HZ = 50
 DT = 1.0 / LOOP_HZ
 THROTTLE_STEP = 0.004 # Between 0.0 and 1.0
 DETHROTTLE_STEP = 0.004 # Between 0.0 and 1.0
-MAX_ANGLE_DEG = 20.0
+MAX_ANGLE_DEG = 10.0
 MAX_YAW_RATE_DPS = 60.0
+
+MAGIC_1 = 0xAA
+MAGIC_2 = 0x55
 
 # ========== COMMAND STATE ========== #
 # Mirrors Receiver::ControlTargets
@@ -33,9 +37,6 @@ class ControlTargets:
         self.yaw_rate = max(-MAX_YAW_RATE_DPS, min(MAX_YAW_RATE_DPS, self.yaw_rate))
 
 # ========== WIRE PROTOCOL (CODEC) ========== #
-
-MAGIC_1 = 0xAA
-MAGIC_2 = 0x55
 
 def pack_command(targets: ControlTargets) -> bytes:
 
@@ -79,11 +80,15 @@ def run_loop() -> None:
 
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
         next_tick = time.monotonic()
+        tick = 0
 
         try:
             while True:
+                
                 # 1. Read pressed_keys -> update targets
                 curr_keys = pressed_keys.copy() # Avoids key changes mid loop
+                tick += 1
+
                 # 1.1 Reset pitch, roll and yaw for self-centering
                 targets.pitch = 0.0
                 targets.roll = 0.0
@@ -105,6 +110,11 @@ def run_loop() -> None:
                 if "a" in curr_keys:
                     targets.roll -= MAX_ANGLE_DEG
 
+                if "right" in curr_keys:
+                    targets.yaw_rate += MAX_YAW_RATE_DPS
+                if "left" in curr_keys:
+                    targets.yaw_rate -= MAX_YAW_RATE_DPS
+
                 if "r" in curr_keys and targets.throttle == 0.0:
                     targets.armed = True
                 if "r" in curr_keys and targets.throttle != 0.0:
@@ -123,15 +133,16 @@ def run_loop() -> None:
                 except OSError as err:
                     print(f"Send error: {err}")
 
-                # [testing] Print keypress + packet contents to console
-                print(packet.hex(" "), "---> ", curr_keys)
+                # [testing] Print keypress + packet contents to console every ~10 ticks
+                if (tick % 10) == 0:
+                    print(packet.hex(" "), "---> ", curr_keys)
                 
                 # Wait until next 20 ms tick without timing drift
                 next_tick += DT
                 sleep_time = next_tick - time.monotonic()
-                if sleep_time > 0: # 
+                if sleep_time > 0: # DT successfully applied (no lag)
                     time.sleep(sleep_time)
-                elif sleep_time < -DT: # 
+                elif sleep_time < -DT: # Lag greater than one delay
                     next_tick = time.monotonic()
 
         except KeyboardInterrupt:
