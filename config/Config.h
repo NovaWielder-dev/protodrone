@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include "Secrets.h"
 
 namespace Config::Motors {
     // PWM pulse values (us) for maximum and minimum allowed thrust
@@ -16,4 +17,13 @@ namespace Config::Motors {
 namespace Config::IMU {
     constexpr int GYRO_SCL = 22;
     constexpr int GYRO_SDA = 21;
+}
+
+namespace Config::WiFi {
+    constexpr uint32_t FAILSAFE_TIMEOUT_MS = 300;
+    constexpr const char* SSID = Config::Secrets::WIFI_SSID;
+    constexpr const char* PASSWORD = Config::Secrets::WIFI_PASSWORD;
+    constexpr int UDP_PORT = 4210;
+    constexpr float MAX_ANGLE_DEG = 20.0f;
+    constexpr float MAX_YAW_RATE_DPS = 60.0f;
 }
