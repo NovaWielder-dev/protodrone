@@ -19,6 +19,14 @@
 .DS_Store
 Thumbs.db
 
+# Python
+.venv/
+__pychache__/
+*.py[cod]
+*.egg-info
+dist/
+build/
+
 # AI
 GEMINI.md
 context/
