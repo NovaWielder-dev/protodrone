@@ -31,9 +31,23 @@ namespace {
 
         // Check
         if (Wire.requestFrom(0x68, 6) == 6) {
-            int16_t rawX = (Wire.read() << 8 | Wire.read());
-            int16_t rawY = (Wire.read() << 8 | Wire.read());
-            int16_t rawZ = (Wire.read() << 8 | Wire.read());
+            uint8_t hiX = Wire.read(); // Pops 0x43
+            uint8_t loX = Wire.read(); // Pops 0x44
+            int16_t rawX = static_cast<int16_t>(
+                (static_cast<uint16_t>(hiX) << 8) | loX
+            );
+
+            int8_t hiY = Wire.read(); // Pops 0x45
+            int8_t loY = Wire.read(); // Pops 0x46
+            int16_t rawY = static_cast<int16_t>(
+                (static_cast<uint16_t>(hiY) << 8) | loY
+            );
+
+            int8_t hiZ = Wire.read(); // Pops 0x47
+            int8_t loZ = Wire.read(); // Pops 0x48
+            int16_t rawZ = static_cast<int16_t>(
+                (static_cast<uint16_t>(hiZ) << 8) | loZ
+            );
 
             gx = rawX / 131.0f;
             gy = rawY / 131.0f;
@@ -48,9 +62,23 @@ namespace {
         Wire.endTransmission(false);
 
         if (Wire.requestFrom(0x68, 6) == 6) {
-            int16_t rawX = (Wire.read() << 8 | Wire.read());
-            int16_t rawY = (Wire.read() << 8 | Wire.read());
-            int16_t rawZ = (Wire.read() << 8 | Wire.read());
+            int16_t hiX = Wire.read(); // Pops 0x3B
+            int16_t loX = Wire.read(); // Pops 0x3C
+            int16_t rawX = static_cast<int16_t>(
+                (static_cast<uint16_t>(hiX) << 8) | loX
+            );
+
+            int16_t hiY = Wire.read(); // Pops 0x3D
+            int16_t loY = Wire.read(); // Pops 0x3E
+            int16_t rawY = static_cast<int16_t>(
+                (static_cast<uint16_t>(hiY) << 8) | loY
+            );
+
+            int16_t hiZ = Wire.read(); // Pops 0x3F
+            int16_t loZ = Wire.read(); // Pops 0x40
+            int16_t rawZ = static_cast<int16_t>(
+                (static_cast<uint16_t>(hiZ) << 8) | loZ
+            );
 
             ax = rawX / 16384.0f;
             ay = rawY / 16384.0f;
