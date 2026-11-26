@@ -8,7 +8,9 @@ class PID {
        float Kd;
        
        float I_sum;
-       float e_prev;
+
+       float prevMeasured;
+       bool hasPrev;
 
        float maxI;
        float maxOut;

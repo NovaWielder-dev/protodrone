@@ -4,21 +4,29 @@ PID::PID(float Kp, float Ki, float Kd, float maxI, float maxOut)
     : Kp(Kp), Ki(Ki), Kd(Kd), maxI(maxI), maxOut(maxOut)
 {
     I_sum = 0.0f;
-    e_prev = 0.0f;
+    hasPrev = false;
+    prevMeasured = 0.0f;
 }
 
-float PID::update(float setPoint, float measured, float dt) {
+float PID::update(float target, float measured, float dt) {
+    
+    // heading += dt * 5d/s
+    // Integral_gain += Ki * dt * heading
+    // error = (Kp * heading) + (integral_gain) + (Kd * avel)
+    
     // Current error
-    float e_curr = setPoint - measured;
+    float e_curr = target - measured;
 
     // Proportional (P)
     float P = Kp * e_curr;
 
     // Derivative (D)
-    float D = 0.0f; // Assuming no change to error
-    if (dt != 0.0f) {
-        D = Kd * ((e_curr - e_prev) / dt);
+    float D = 0.0f; // Default in case of liftoff
+    if (hasPrev && dt > 0.0f) {
+        D = -Kd * ((measured - prevMeasured) / dt);
     }
+    prevMeasured = measured;
+    hasPrev = true;
 
     // Integral (I)
     I_sum += e_curr * dt;
@@ -30,9 +38,6 @@ float PID::update(float setPoint, float measured, float dt) {
     }
     float I = Ki * I_sum;
 
-    // Update previous error
-    e_prev = e_curr;
-
     // Return clamped sum
     if (P + I + D > maxOut) {return maxOut;}
     else if (P + I + D < -maxOut) {return -maxOut;}
@@ -41,5 +46,6 @@ float PID::update(float setPoint, float measured, float dt) {
 
 void PID::reset() {
     I_sum = 0.0f;
-    e_prev = 0.0f;
+    hasPrev = false;
+    prevMeasured = 0.0f;
 }
