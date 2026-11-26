@@ -39,14 +39,6 @@ void Motors::init() {
     stop();
 }
 
-// SAFETY ARMING
-void Motors::arm() {
-
-    Serial.println("[ARMING] Holding esc's at minimum thrust for 3 sec...");
-    stop();
-    delay(3000);
-}
-
 // SET ALL ESC'S TO MINIMUM PULSE (ZERO THRUST)
 void Motors::stop() {
     

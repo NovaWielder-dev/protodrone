@@ -3,7 +3,6 @@
 
 namespace Motors {
     void init();
-    void arm();
     void stop();
     void write(const Mixer::MotorCommands& cmds);
 }
